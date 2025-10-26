@@ -1,0 +1,32 @@
+# Fintech Agent Platform Requirements
+
+# Core dependencies
+agno>=2.1.8
+fastapi>=0.119.0
+uvicorn>=0.38.0
+pydantic>=2.12.0
+sqlalchemy>=2.0.0
+python-dotenv>=1.0.0
+
+# Market data
+yfinance>=0.2.40
+requests>=2.31.0
+
+# Database
+alembic>=1.13.0
+
+# Optional: Production deployment
+gunicorn>=21.2.0
+redis>=5.0.0
+
+# Optional: Advanced features
+celery>=5.3.0  # For background tasks
+twilio>=8.0.0  # For SMS notifications
+sendgrid>=6.11.0  # For email
+pandas>=2.2.0  # For data analysis
+numpy>=1.26.0  # For calculations
+
+# Development
+pytest>=8.0.0
+black>=24.0.0
+flake8>=7.0.0
