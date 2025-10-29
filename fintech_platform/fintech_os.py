@@ -76,8 +76,8 @@ class FintechAgentPlatform:
         # Initialize database
         self.engine = init_database(db_url)
         
-        # Initialize agent factory and rule engine
-        self.agent_factory = AgentFactory()
+        # Initialize agent factory and rule engine with database engine
+        self.agent_factory = AgentFactory(db_engine=self.engine)
         self.rule_engine = RuleEngine()
         
         # Agent registry

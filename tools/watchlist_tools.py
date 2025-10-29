@@ -5,24 +5,26 @@ Allows agents to add/remove stocks from user watchlists via conversation
 from agno.tools import Toolkit
 from agno.utils.log import logger
 from typing import List, Optional
-import requests
+from core.database import get_session, WatchlistDB
+from core.models import Watchlist
+from sqlalchemy import Engine
 
 
 class WatchlistTools(Toolkit):
     """Tools for managing user watchlists"""
     
-    def __init__(self, user_id: str, api_base_url: str = "http://localhost:7777", name: str = "watchlist_tools"):
+    def __init__(self, user_id: str, db_engine: Engine, name: str = "watchlist_tools"):
         """
         Initialize watchlist tools for a specific user.
         
         Args:
             user_id: The ID of the user whose watchlists to manage
-            api_base_url: Base URL of the Fintech API
+            db_engine: SQLAlchemy database engine for direct database access
             name: Name of the toolkit
         """
         super().__init__(name=name)
         self.user_id = user_id
-        self.api_base_url = api_base_url
+        self.db_engine = db_engine
         
         self.register(self.add_to_watchlist)
         self.register(self.remove_from_watchlist)
@@ -42,28 +44,37 @@ class WatchlistTools(Toolkit):
             Success message with watchlist details
         """
         try:
-            url = f"{self.api_base_url}/api/users/{self.user_id}/watchlists"
-            payload = {
-                "name": name,
-                "assets": assets,
-                "asset_type": asset_type
-            }
+            session = get_session(self.db_engine)
             
-            response = requests.post(url, json=payload, timeout=10)
-            response.raise_for_status()
+            # Create watchlist model
+            watchlist = Watchlist(
+                user_id=self.user_id,
+                name=name,
+                assets=assets,
+                asset_type=asset_type
+            )
             
-            result = response.json()
-            watchlist = result.get("watchlist", {})
+            # Save to database
+            watchlist_db = WatchlistDB(
+                id=watchlist.id,
+                user_id=self.user_id,
+                name=watchlist.name,
+                assets=watchlist.assets,
+                asset_type=watchlist.asset_type,
+                created_at=watchlist.created_at
+            )
+            
+            session.add(watchlist_db)
+            session.commit()
+            session.close()
             
             assets_str = ", ".join(assets)
+            logger.info(f"Created watchlist '{name}' for user {self.user_id}")
             return f"✅ Created watchlist '{name}' with {len(assets)} {asset_type}(s): {assets_str}"
         
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.error(f"Error creating watchlist: {e}")
             return f"❌ Failed to create watchlist: {str(e)}"
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            return f"❌ Error: {str(e)}"
     
     def add_to_watchlist(self, watchlist_name: str, symbols: List[str]) -> str:
         """
@@ -77,31 +88,32 @@ class WatchlistTools(Toolkit):
             Success or error message
         """
         try:
-            # First, get all watchlists to find the one with matching name
-            watchlists = self._get_user_watchlists()
+            session = get_session(self.db_engine)
             
-            matching_watchlist = None
-            for wl in watchlists:
-                if wl.get("name", "").lower() == watchlist_name.lower():
-                    matching_watchlist = wl
-                    break
+            # Find watchlist by name
+            watchlist_db = session.query(WatchlistDB).filter(
+                WatchlistDB.user_id == self.user_id,
+                WatchlistDB.name.ilike(watchlist_name)  # Case-insensitive search
+            ).first()
             
-            if not matching_watchlist:
+            if not watchlist_db:
+                session.close()
                 # Create a new watchlist if it doesn't exist
                 return self.create_watchlist(watchlist_name, symbols, asset_type="stock")
             
-            # Add symbols to existing watchlist
-            existing_assets = matching_watchlist.get("assets", [])
-            new_assets = list(set(existing_assets + symbols))  # Remove duplicates
+            # Add symbols to existing watchlist (remove duplicates)
+            existing_assets = set(watchlist_db.assets)
+            new_symbols = [s.upper() for s in symbols if s.upper() not in existing_assets]
             
-            # Update the watchlist (you'll need to implement update endpoint)
-            # For now, let's just report what would be added
-            added = [s for s in symbols if s not in existing_assets]
-            
-            if added:
-                return f"✅ Added {len(added)} symbol(s) to '{watchlist_name}': {', '.join(added)}\n" \
-                       f"Note: Please refresh your watchlist view to see the changes."
+            if new_symbols:
+                watchlist_db.assets = list(existing_assets.union(new_symbols))
+                session.commit()
+                session.close()
+                
+                logger.info(f"Added {len(new_symbols)} symbols to watchlist '{watchlist_name}'")
+                return f"✅ Added {len(new_symbols)} symbol(s) to '{watchlist_name}': {', '.join(new_symbols)}"
             else:
+                session.close()
                 return f"ℹ️ All symbols already exist in '{watchlist_name}'"
         
         except Exception as e:
@@ -120,24 +132,32 @@ class WatchlistTools(Toolkit):
             Success or error message
         """
         try:
-            watchlists = self._get_user_watchlists()
+            session = get_session(self.db_engine)
             
-            matching_watchlist = None
-            for wl in watchlists:
-                if wl.get("name", "").lower() == watchlist_name.lower():
-                    matching_watchlist = wl
-                    break
+            # Find watchlist by name
+            watchlist_db = session.query(WatchlistDB).filter(
+                WatchlistDB.user_id == self.user_id,
+                WatchlistDB.name.ilike(watchlist_name)
+            ).first()
             
-            if not matching_watchlist:
+            if not watchlist_db:
+                session.close()
                 return f"❌ Watchlist '{watchlist_name}' not found"
             
-            existing_assets = matching_watchlist.get("assets", [])
-            removed = [s for s in symbols if s in existing_assets]
+            # Remove symbols
+            existing_assets = set(watchlist_db.assets)
+            symbols_upper = [s.upper() for s in symbols]
+            removed = [s for s in symbols_upper if s in existing_assets]
             
             if removed:
-                return f"✅ Would remove {len(removed)} symbol(s) from '{watchlist_name}': {', '.join(removed)}\n" \
-                       f"Note: Delete functionality pending. Please use the web interface."
+                watchlist_db.assets = [a for a in watchlist_db.assets if a not in removed]
+                session.commit()
+                session.close()
+                
+                logger.info(f"Removed {len(removed)} symbols from watchlist '{watchlist_name}'")
+                return f"✅ Removed {len(removed)} symbol(s) from '{watchlist_name}': {', '.join(removed)}"
             else:
+                session.close()
                 return f"ℹ️ None of the specified symbols found in '{watchlist_name}'"
         
         except Exception as e:
@@ -152,37 +172,25 @@ class WatchlistTools(Toolkit):
             Formatted string with all watchlists and their contents
         """
         try:
-            watchlists = self._get_user_watchlists()
+            session = get_session(self.db_engine)
             
-            if not watchlists:
+            watchlists_db = session.query(WatchlistDB).filter(
+                WatchlistDB.user_id == self.user_id
+            ).all()
+            
+            session.close()
+            
+            if not watchlists_db:
                 return "📋 You don't have any watchlists yet. Create one by saying 'Create a watchlist named [name] with [symbols]'"
             
-            result = f"📋 Your Watchlists ({len(watchlists)}):\n\n"
+            result = f"📋 Your Watchlists ({len(watchlists_db)}):\n\n"
             
-            for wl in watchlists:
-                name = wl.get("name", "Unnamed")
-                asset_type = wl.get("asset_type", "stock")
-                assets = wl.get("assets", [])
-                
-                result += f"**{name}** ({asset_type})\n"
-                result += f"  Assets: {', '.join(assets) if assets else 'Empty'}\n\n"
+            for wl in watchlists_db:
+                result += f"**{wl.name}** ({wl.asset_type})\n"
+                result += f"  Assets: {', '.join(wl.assets) if wl.assets else 'Empty'}\n\n"
             
             return result
         
         except Exception as e:
             logger.error(f"Error getting watchlists: {e}")
             return f"❌ Failed to retrieve watchlists: {str(e)}"
-    
-    def _get_user_watchlists(self) -> List[dict]:
-        """Helper method to fetch user's watchlists from API"""
-        try:
-            url = f"{self.api_base_url}/api/users/{self.user_id}/watchlists"
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            
-            result = response.json()
-            return result.get("watchlists", [])
-        
-        except Exception as e:
-            logger.error(f"Error fetching watchlists: {e}")
-            return []

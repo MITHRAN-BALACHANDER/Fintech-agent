@@ -93,8 +93,8 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Your Watchlists</h2>
-          <p className="text-slate-600 dark:text-slate-300">
+          <h2 className="text-2xl font-semibold tracking-tight">Your Watchlists</h2>
+          <p className="text-sm text-muted-foreground">
             Monitor your favorite stocks and cryptocurrencies
           </p>
         </div>
@@ -111,17 +111,18 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
       )}
 
       {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Watchlist</CardTitle>
+        <Card className="glass-card dark:glass-card-dark border-0 shadow-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-xl">Create New Watchlist</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Watchlist Name</Label>
+                <Label htmlFor="name" className="text-sm">Watchlist Name</Label>
                 <Input
                   id="name"
                   placeholder="My Tech Stocks"
+                  className="glass-input dark:glass-input-dark"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -129,14 +130,14 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="asset_type">Asset Type</Label>
+                <Label htmlFor="asset_type" className="text-sm">Asset Type</Label>
                 <Select
                   value={formData.asset_type}
                   onValueChange={(value) =>
                     setFormData({ ...formData, asset_type: value as AssetType })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="glass-input dark:glass-input-dark">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -147,13 +148,14 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assets">
+                <Label htmlFor="assets" className="text-sm">
                   Add Assets (e.g., AAPL, GOOGL for stocks or BTC-USD, ETH-USD for crypto)
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     id="assets"
                     placeholder="Enter symbol"
+                    className="glass-input dark:glass-input-dark"
                     value={assetInput}
                     onChange={(e) => setAssetInput(e.target.value)}
                     onKeyPress={(e) => {
@@ -163,7 +165,7 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
                       }
                     }}
                   />
-                  <Button type="button" onClick={handleAddAsset}>
+                  <Button type="button" onClick={handleAddAsset} className="glass-button dark:glass-button-dark border-0">
                     Add
                   </Button>
                 </div>
@@ -196,23 +198,26 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
 
       <div className="grid md:grid-cols-2 gap-6">
         {watchlists.map((watchlist) => (
-          <Card key={watchlist.id}>
+          <Card key={watchlist.id} className="glass-card dark:glass-card-dark border-0 shadow-lg smooth-transition hover:scale-105">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  {watchlist.asset_type === "stock" ? (
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
-                  ) : (
-                    <Bitcoin className="w-5 h-5 text-orange-600" />
-                  )}
-                  <CardTitle>{watchlist.name}</CardTitle>
+                  <div className="w-8 h-8 rounded-lg glass-button dark:glass-button-dark flex items-center justify-center">
+                    {watchlist.asset_type === "stock" ? (
+                      <TrendingUp className="w-4 h-4" />
+                    ) : (
+                      <Bitcoin className="w-4 h-4" />
+                    )}
+                  </div>
+                  <CardTitle className="text-lg">{watchlist.name}</CardTitle>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDelete(watchlist.id)}
+                  className="glass-button dark:glass-button-dark border-0 hover:bg-destructive/10"
                 >
-                  <Trash2 className="w-4 h-4 text-red-600" />
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
               <CardDescription>
@@ -234,11 +239,13 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
       </div>
 
       {watchlists.length === 0 && !showAddForm && (
-        <Card>
+        <Card className="glass-card dark:glass-card-dark border-0 shadow-lg">
           <CardContent className="text-center py-12">
-            <TrendingUp className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-            <p className="text-slate-600 dark:text-slate-300">No watchlists yet</p>
-            <p className="text-sm text-slate-500 mt-2">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-lg glass-button dark:glass-button-dark flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium">No watchlists yet</p>
+            <p className="text-xs text-muted-foreground mt-2">
               Create a watchlist to start monitoring your favorite assets
             </p>
           </CardContent>

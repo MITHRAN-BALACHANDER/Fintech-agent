@@ -8,6 +8,7 @@ from agno.models.openai import OpenAIChat
 from agno.db.sqlite import SqliteDb
 from typing import Dict, List, Optional
 from textwrap import dedent
+from sqlalchemy import Engine
 from core.models import User, TradingRule, Watchlist, AgentConfig
 from tools.market_tools import MarketDataTools
 from tools.notification_tools import NotificationTools
@@ -19,14 +20,16 @@ import os
 class AgentFactory:
     """Factory for creating and managing personalized trading agents"""
     
-    def __init__(self, model_provider: str = "gemini", db_path: str = "./agents.db"):
+    def __init__(self, db_engine: Optional[Engine] = None, model_provider: str = "gemini", db_path: str = "./agents.db"):
         """
         Initialize agent factory.
         
         Args:
+            db_engine: SQLAlchemy database engine for watchlist/rules access
             model_provider: AI model provider (gemini, openai)
             db_path: Path to SQLite database for agent storage
         """
+        self.db_engine = db_engine
         self.model_provider = model_provider
         self.db_path = db_path
         self.agents: Dict[str, Agent] = {}
@@ -52,11 +55,11 @@ class AgentFactory:
             user_email = config.preferences.get("email")
             user_phone = config.preferences.get("phone")
             
-            # Initialize tools with user contact information
+            # Initialize tools with user contact information and database access
             tools = [
                 MarketDataTools(),
                 NotificationTools(user_email=user_email, user_phone=user_phone),
-                WatchlistTools(user_id=config.user_id)
+                WatchlistTools(user_id=config.user_id, db_engine=self.db_engine)
             ]
             
             # Create database for agent memory

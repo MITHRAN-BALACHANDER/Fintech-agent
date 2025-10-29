@@ -40,24 +40,39 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Glassmorphic Background Pattern */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/4 w-1/2 h-1/2 bg-neutral-200/30 dark:bg-neutral-800/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-1/2 -right-1/4 w-1/2 h-1/2 bg-neutral-300/30 dark:bg-neutral-700/20 rounded-full blur-3xl" />
+      </div>
+
       {/* Header */}
-      <header className="border-b bg-white/50 backdrop-blur-sm dark:bg-slate-900/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold">Fintech Agent Platform</h1>
+      <header className="glass-header dark:glass-header-dark sticky top-0 z-50 smooth-transition">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg glass-button dark:glass-button-dark flex items-center justify-center smooth-transition">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <h1 className="text-lg font-semibold tracking-tight">Fintech Agent</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-slate-600" />
-                <span className="font-medium">{userName}</span>
-                <Badge variant="outline">AI Agent Active</Badge>
+              <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-lg glass-button dark:glass-button-dark">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{userName}</span>
+                <Badge variant="outline" className="text-xs border-foreground/20 bg-transparent">
+                  AI Active
+                </Badge>
               </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout}
+                className="gap-2 h-9 font-medium glass-button dark:glass-button-dark border-0 hover:scale-105"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
@@ -65,19 +80,27 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="chat" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
-            <TabsTrigger value="chat">Chat with Agent</TabsTrigger>
-            <TabsTrigger value="watchlists">Watchlists</TabsTrigger>
-            <TabsTrigger value="rules">Trading Rules</TabsTrigger>
-            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto h-10 glass-button dark:glass-button-dark border-0">
+            <TabsTrigger value="chat" className="text-sm data-[state=active]:glass dark:data-[state=active]:glass-dark">
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="watchlists" className="text-sm data-[state=active]:glass dark:data-[state=active]:glass-dark">
+              Watchlists
+            </TabsTrigger>
+            <TabsTrigger value="rules" className="text-sm data-[state=active]:glass dark:data-[state=active]:glass-dark">
+              Rules
+            </TabsTrigger>
+            <TabsTrigger value="portfolio" className="text-sm data-[state=active]:glass dark:data-[state=active]:glass-dark">
+              Portfolio
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Chat with Your AI Trading Assistant</CardTitle>
+            <Card className="glass-card dark:glass-card-dark border-0 shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl">Chat with Your AI Trading Assistant</CardTitle>
                 <CardDescription>
                   Ask about market trends, get stock analysis, or request trading advice
                 </CardDescription>
