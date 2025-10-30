@@ -622,3 +622,70 @@ async def get_stats():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/{user_id}/stats")
+async def get_user_stats(user_id: str):
+    """Get user-specific statistics"""
+    try:
+        session = get_session(platform.engine)
+        
+        # Count user's watchlists
+        watchlist_count = session.query(WatchlistDB).filter_by(user_id=user_id).count()
+        
+        # Count user's rules (total and active)
+        total_rules = session.query(TradingRuleDB).filter_by(user_id=user_id).count()
+        active_rules = session.query(TradingRuleDB).filter_by(user_id=user_id, enabled=True).count()
+        
+        # Count user's trades
+        trade_count = session.query(TradeExecutionDB).filter_by(user_id=user_id).count()
+        
+        # Get recent trades
+        recent_trades = session.query(TradeExecutionDB).filter_by(user_id=user_id).order_by(
+            TradeExecutionDB.created_at.desc()
+        ).limit(10).all()
+        
+        trades_list = []
+        for trade in recent_trades:
+            trades_list.append({
+                "id": trade.id,
+                "asset": trade.asset,
+                "action": trade.action,
+                "quantity": trade.quantity,
+                "price": trade.price,
+                "status": trade.status,
+                "created_at": trade.created_at.isoformat(),
+                "executed_at": trade.executed_at.isoformat() if trade.executed_at else None
+            })
+        
+        # Get recently triggered rules
+        recent_rules = session.query(TradingRuleDB).filter(
+            TradingRuleDB.user_id == user_id,
+            TradingRuleDB.last_triggered.isnot(None)
+        ).order_by(
+            TradingRuleDB.last_triggered.desc()
+        ).limit(10).all()
+        
+        triggered_rules = []
+        for rule in recent_rules:
+            triggered_rules.append({
+                "id": rule.id,
+                "name": rule.name,
+                "asset": rule.asset,
+                "rule_type": rule.rule_type,
+                "last_triggered": rule.last_triggered.isoformat()
+            })
+        
+        session.close()
+        
+        return {
+            "watchlists": watchlist_count,
+            "total_rules": total_rules,
+            "active_rules": active_rules,
+            "total_trades": trade_count,
+            "recent_trades": trades_list,
+            "recent_rule_triggers": triggered_rules,
+            "agent_active": user_id in platform.agents
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

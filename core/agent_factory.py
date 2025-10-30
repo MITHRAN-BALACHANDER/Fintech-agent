@@ -13,6 +13,7 @@ from core.models import User, TradingRule, Watchlist, AgentConfig
 from tools.market_tools import MarketDataTools
 from tools.notification_tools import NotificationTools
 from tools.watchlist_tools import WatchlistTools
+from tools.rules_tools import RulesTools
 from agno.utils.log import logger
 import os
 
@@ -59,7 +60,8 @@ class AgentFactory:
             tools = [
                 MarketDataTools(),
                 NotificationTools(user_email=user_email, user_phone=user_phone),
-                WatchlistTools(user_id=config.user_id, db_engine=self.db_engine)
+                WatchlistTools(user_id=config.user_id, db_engine=self.db_engine),
+                RulesTools(user_id=config.user_id, db_engine=self.db_engine)
             ]
             
             # Create database for agent memory
@@ -143,13 +145,22 @@ class AgentFactory:
                - When user asks to "add TCS to my watchlist" or "track INFY", use these tools
                - For Indian stocks, use .NS suffix (e.g., "TCS.NS", "INFY.NS")
             
-            3. **Rule Monitoring**: You continuously monitor trading rules set by the user. When conditions are met, 
+            3. **Rules Management**: You can view and manage the user's trading rules.
+               - View all rules: get_rules() or summarize_rules()
+               - View specific rule: get_rule_by_id(rule_id)
+               - View rules for asset: get_rules_by_asset(asset)
+               - Enable/disable rules: update_rule_status(rule_id, enabled)
+               - View recent triggers: get_recently_triggered_rules()
+               - When user asks "check my rules" or "show my rules", use summarize_rules()
+               - When user asks to enable/disable a rule, use update_rule_status()
+            
+            4. **Rule Monitoring**: You continuously monitor trading rules set by the user. When conditions are met, 
                you trigger alerts via email, SMS, or execute automated actions.
             
-            4. **Intelligent Recommendations**: Based on market data, momentum, technical indicators, and macroeconomic trends, 
+            5. **Intelligent Recommendations**: Based on market data, momentum, technical indicators, and macroeconomic trends, 
                you provide buy/sell recommendations aligned with the user's risk profile.
             
-            5. **Report Generation**: You can generate detailed market reports, portfolio analysis, and performance summaries.
+            6. **Report Generation**: You can generate detailed market reports, portfolio analysis, and performance summaries.
             
             **Email/SMS Notifications:**
             - The user's email and phone are already configured in your notification tools

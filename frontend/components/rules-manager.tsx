@@ -222,11 +222,11 @@ export default function RulesManager({ userId }: RulesManagerProps) {
                   type="number"
                   step="0.01"
                   placeholder="150.00"
-                  value={formData.condition.threshold}
+                  value={formData.condition.threshold || ""}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      condition: { threshold: parseFloat(e.target.value) },
+                      condition: { threshold: parseFloat(e.target.value) || 0 },
                     })
                   }
                   required
