@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import apiClient from "@/lib/api-client";
 import { Watchlist, WatchlistCreate, AssetType } from "@/lib/types";
-import { Plus, Trash2, TrendingUp, Bitcoin } from "lucide-react";
+import { Plus, Trash2, TrendingUp, Bitcoin, Pencil } from "lucide-react";
 
 interface WatchlistManagerProps {
   userId: string;
@@ -27,6 +27,7 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
     asset_type: "stock",
   });
   const [assetInput, setAssetInput] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadWatchlists();
@@ -60,16 +61,37 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
     });
   };
 
+  const handleEdit = (watchlist: Watchlist) => {
+    setFormData({
+      name: watchlist.name,
+      assets: [...watchlist.assets],
+      asset_type: watchlist.asset_type,
+    });
+    setEditingId(watchlist.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     try {
-      const response = await apiClient.addWatchlist(userId, formData);
-      if (response.success) {
-        setWatchlists([...watchlists, response.watchlist]);
-        setFormData({ name: "", assets: [], asset_type: "stock" });
-        setShowAddForm(false);
+      if (editingId) {
+        const response = await apiClient.updateWatchlist(userId, editingId, formData);
+        if (response.success) {
+          setWatchlists(watchlists.map(w => w.id === editingId ? response.watchlist : w));
+          setFormData({ name: "", assets: [], asset_type: "stock" });
+          setShowAddForm(false);
+          setEditingId(null);
+        }
+      } else {
+        const response = await apiClient.addWatchlist(userId, formData);
+        if (response.success) {
+          setWatchlists([...watchlists, response.watchlist]);
+          setFormData({ name: "", assets: [], asset_type: "stock" });
+          setShowAddForm(false);
+        }
       }
     } catch (err: any) {
       setError(err.message);
@@ -98,9 +120,19 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
             Monitor your favorite stocks and cryptocurrencies
           </p>
         </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
+        <Button onClick={() => {
+          if (showAddForm) {
+            setShowAddForm(false);
+            setEditingId(null);
+            setFormData({ name: "", assets: [], asset_type: "stock" });
+          } else {
+            setShowAddForm(true);
+            setEditingId(null);
+            setFormData({ name: "", assets: [], asset_type: "stock" });
+          }
+        }}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Watchlist
+          {showAddForm ? "Close Form" : "Add Watchlist"}
         </Button>
       </div>
 
@@ -113,7 +145,7 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
       {showAddForm && (
         <Card className="glass-card dark:glass-card-dark border-0 shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Create New Watchlist</CardTitle>
+            <CardTitle className="text-xl">{editingId ? "Edit Watchlist" : "Create New Watchlist"}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,9 +217,13 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={formData.assets.length === 0}>
-                  Create Watchlist
+                  {editingId ? "Update Watchlist" : "Create Watchlist"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                <Button type="button" variant="outline" onClick={() => {
+                  setShowAddForm(false);
+                  setEditingId(null);
+                  setFormData({ name: "", assets: [], asset_type: "stock" });
+                }}>
                   Cancel
                 </Button>
               </div>
@@ -211,14 +247,24 @@ export default function WatchlistManager({ userId }: WatchlistManagerProps) {
                   </div>
                   <CardTitle className="text-lg">{watchlist.name}</CardTitle>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(watchlist.id)}
-                  className="glass-button dark:glass-button-dark border-0 hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(watchlist)}
+                    className="glass-button dark:glass-button-dark border-0 hover:bg-primary/10"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(watchlist.id)}
+                    className="glass-button dark:glass-button-dark border-0 hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               <CardDescription>
                 {watchlist.asset_type === "stock" ? "Stocks" : "Cryptocurrency"} •{" "}
