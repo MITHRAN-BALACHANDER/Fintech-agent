@@ -13,6 +13,7 @@ import { RiskProfile, NotificationChannel, UserCreate } from "@/lib/types";
 import apiClient from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 import { TrendingUp, Bot, Shield, Bell } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   const router = useRouter();
@@ -83,26 +84,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative">
-      {/* Glassmorphic Background Pattern */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/4 w-1/2 h-1/2 bg-neutral-200/30 dark:bg-neutral-800/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/4 w-1/2 h-1/2 bg-neutral-300/30 dark:bg-neutral-700/20 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen relative bg-background">
       {/* Header */}
-      <header className="glass-header dark:glass-header-dark sticky top-0 z-50 smooth-transition">
+      <header className="sticky top-0 z-50 elevation-1 bg-background/95 backdrop-blur-sm border-b border-border animate-fade-in">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg glass-button dark:glass-button-dark flex items-center justify-center">
-                <TrendingUp className="h-4 w-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg elevation-2 bg-card flex items-center justify-center hover-lift">
+                <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <span className="text-lg font-semibold tracking-tight">Fintech Agent</span>
             </div>
-            <Badge variant="outline" className="hidden sm:inline-flex glass-button dark:glass-button-dark border-0">
-              Production Ready
-            </Badge>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -110,7 +103,7 @@ export default function Home() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="mx-auto max-w-7xl">
           {/* Hero Section */}
-          <div className="text-center mb-16 lg:mb-20">
+          <div className="text-center mb-16 lg:mb-20 stack-lg animate-slide-in-down">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
               AI-Powered Trading
               <br />
@@ -123,15 +116,21 @@ export default function Home() {
 
 
           {/* Auth Section */}
-          <div className="max-w-xl mx-auto">
-            <Card className="glass-card dark:glass-card-dark border-0 shadow-2xl smooth-transition">
+          <div className="max-w-xl mx-auto animate-scale-in">
+            <Card className="elevation-4 border border-border bg-card hover-lift">
               <Tabs defaultValue="signup" className="w-full">
                 <CardHeader className="pb-0">
-                  <TabsList className="grid w-full grid-cols-2 h-11 mb-6 glass-button dark:glass-button-dark border-0">
-                    <TabsTrigger value="signup" className="text-sm font-medium data-[state=active]:glass dark:data-[state=active]:glass-dark">
+                  <TabsList className="grid w-full grid-cols-2 h-11 mb-6 bg-muted rounded-lg p-1">
+                    <TabsTrigger 
+                      value="signup" 
+                      className="text-sm font-medium data-[state=active]:elevation-1 data-[state=active]:bg-background rounded-md transition-all duration-140"
+                    >
                       Sign Up
                     </TabsTrigger>
-                    <TabsTrigger value="login" className="text-sm font-medium data-[state=active]:glass dark:data-[state=active]:glass-dark">
+                    <TabsTrigger 
+                      value="login" 
+                      className="text-sm font-medium data-[state=active]:elevation-1 data-[state=active]:bg-background rounded-md transition-all duration-140"
+                    >
                       Login
                     </TabsTrigger>
                   </TabsList>
@@ -161,7 +160,7 @@ export default function Home() {
                           id="signup-name"
                           type="text"
                           placeholder="John Doe"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={signupData.name}
                           onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                           required
@@ -176,7 +175,7 @@ export default function Home() {
                           id="signup-email"
                           type="email"
                           placeholder="john@example.com"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={signupData.email}
                           onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                           required
@@ -191,7 +190,7 @@ export default function Home() {
                           id="signup-password"
                           type="password"
                           placeholder="••••••••"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={signupData.password}
                           onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                           required
@@ -207,7 +206,7 @@ export default function Home() {
                           id="signup-phone"
                           type="tel"
                           placeholder="+1 (555) 123-4567"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={signupData.phone}
                           onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
                         />
@@ -302,7 +301,7 @@ export default function Home() {
                           id="login-email"
                           type="email"
                           placeholder="john@example.com"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                           required
@@ -317,7 +316,7 @@ export default function Home() {
                           id="login-password"
                           type="password"
                           placeholder="••••••••"
-                          className="h-10 glass-input dark:glass-input-dark"
+                          className="h-10 elevation-0 hover:elevation-1 focus:elevation-2 transition-all duration-140"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           required
