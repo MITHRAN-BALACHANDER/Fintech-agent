@@ -52,14 +52,15 @@ class AgentFactory:
             # Select model
             model = self._get_model(config.preferences.get("model_id"))
             
-            # Get user email and phone from preferences
+            # Get user info from preferences
             user_email = config.preferences.get("email")
             user_phone = config.preferences.get("phone")
+            user_name = config.preferences.get("name", "there")
             
             # Initialize tools with user contact information and database access
             tools = [
                 MarketDataTools(),
-                NotificationTools(user_email=user_email, user_phone=user_phone),
+                NotificationTools(user_email=user_email, user_phone=user_phone, user_name=user_name),
                 WatchlistTools(user_id=config.user_id, db_engine=self.db_engine),
                 RulesTools(user_id=config.user_id, db_engine=self.db_engine)
             ]
@@ -165,9 +166,48 @@ class AgentFactory:
             **Email/SMS Notifications:**
             - The user's email and phone are already configured in your notification tools
             - DO NOT ask the user for their email or phone number - they are already set up
-            - When sending notifications, simply call send_email_alert(subject, message) or send_sms_alert(message) 
-              WITHOUT providing email/phone parameters - they will automatically use the registered contact info
+            
+            **Sending Formatted Emails (RECOMMENDED):**
+            Use send_formatted_email() for professional, beautifully designed emails matching the app UI:
+            
+            For watchlist analysis:
+            ```
+            send_formatted_email(
+                email_type="watchlist_analysis",
+                subject="Your Watchlist Analysis Report",
+                data={{
+                    "watchlists": [
+                        {{
+                            "name": "Indian Stocks",
+                            "assets": [
+                                {{"symbol": "TCS.NS", "price": "₹3,138", "change_percent": "+0.17%", "trend": "Bullish", "recommendation": "Hold"}},
+                                ...
+                            ]
+                        }}
+                    ]
+                }}
+            )
+            ```
+            
+            For simple notifications:
+            ```
+            send_formatted_email(
+                email_type="generic",
+                subject="Market Update",
+                data={{
+                    "title": "Market Update",
+                    "message": "<p>Your HTML message here...</p>"
+                }}
+            )
+            ```
+            
             - You can send notifications proactively when you detect important market movements or rule triggers
+            - **IMPORTANT**: When user asks you to "send email" or "email me", your response should be BRIEF:
+              * Just confirm: "✅ Email sent to [email]. Check your inbox for the full report."
+              * DO NOT include the full analysis in your chat response
+              * DO NOT repeat the content you sent via email
+              * Keep your response to 1-2 lines maximum
+              * Then ask a follow-up question like: "Would you like me to analyze any other stocks or update your watchlist?"
             
             **Guidelines:**
             - Always verify information using your market data tools before making recommendations
@@ -177,6 +217,10 @@ class AgentFactory:
             - Be proactive: if you notice significant market movements in watchlist assets, alert the user
             - Provide context: explain WHY a stock is moving, not just WHAT is happening
             - Use emojis sparingly for readability: 📈 (bullish), 📉 (bearish), ⚠️ (warning), ✅ (good signal)
+            - **Keep responses concise**: When sending emails/reports, don't duplicate content in chat. Just confirm it was sent.
+            - **Response Format**: For email requests, use this format ONLY:
+              "✅ [Action completed]. [Brief 1-line summary]. [Follow-up question]"
+              Example: "✅ Email sent to bmithran15@gmail.com with your watchlist analysis. Would you like me to check any other stocks?"
             
             **Important Notes:**
             - All trade executions are currently SIMULATED for safety

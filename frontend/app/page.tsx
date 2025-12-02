@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChatLayout } from "@/components/layout/ChatLayout"
 import { ChatMessage } from "@/components/chat/ChatMessage"
@@ -14,7 +14,7 @@ interface Message {
   timestamp: string
 }
 
-export default function Page() {
+function ChatPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, isLoading } = useAuth()
@@ -97,5 +97,13 @@ export default function Page() {
         </div>
       </div>
     </ChatLayout>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<ChatLayout><div className="flex items-center justify-center h-full">Loading...</div></ChatLayout>}>
+      <ChatPage />
+    </Suspense>
   )
 }

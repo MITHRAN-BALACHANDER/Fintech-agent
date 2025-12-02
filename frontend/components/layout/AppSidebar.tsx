@@ -22,6 +22,7 @@ import {
   Moon,
   LogOut,
   MoreHorizontal,
+  Zap,
 } from "lucide-react"
 
 import { useRouter, usePathname } from "next/navigation"
@@ -68,7 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
                 <Sparkles className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Fintech Agent</span>
+                <span className="truncate font-semibold">FinSight</span>
                 <span className="truncate text-xs"></span>
               </div>
             </SidebarMenuButton>
@@ -104,11 +105,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {/* <SidebarMenuItem> */}
+                {/* {/* <SidebarMenuButton asChild tooltip="Transactions" isActive={pathname === "/transactions"}> */} 
+                  {/* <Link href="/transactions"> */}
+                    {/* <CreditCard /> */}
+                    {/* <span>Transactions</span> */}
+                  {/* </Link> */}
+                {/* </SidebarMenuButton> */}
+              {/* </SidebarMenuItem> */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Transactions" isActive={pathname === "/transactions"}>
-                  <Link href="/transactions">
-                    <CreditCard />
-                    <span>Transactions</span>
+                <SidebarMenuButton asChild tooltip="Trading Rules" isActive={pathname === "/rules"}>
+                  <Link href="/rules">
+                    <Zap />
+                    <span>Rules</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
