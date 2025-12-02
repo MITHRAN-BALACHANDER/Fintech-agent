@@ -1,4 +1,4 @@
-# 🚀 Fintech Agent Platform
+# 🚀 FinSIght Platform
 
 > **Scalable Multi-Tenant AI Trading Assistant Platform powered by AGNO**
 

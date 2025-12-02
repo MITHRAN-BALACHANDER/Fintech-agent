@@ -1,5 +1,5 @@
 """
-Data models for the Fintech Agent Platform
+Data models for the FinSIght Platform
 """
 from datetime import datetime
 from enum import Enum

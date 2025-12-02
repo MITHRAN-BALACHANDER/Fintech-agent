@@ -189,21 +189,28 @@ class AgentFactory:
         return instructions
     
     def _get_model(self, model_id: Optional[str] = None):
-        """Get AI model instance"""
-        # Get API key from environment
-        api_key = os.getenv("GOOGLE_API_KEY")
+        """Get AI model instance with fallback support"""
+        # Get API keys from environment
+        google_api_key = os.getenv("GOOGLE_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
         
         if model_id:
             if "gpt" in model_id.lower():
+                if not openai_api_key:
+                    logger.warning("OpenAI API key not found, falling back to Gemini")
+                    return Gemini(id="gemini-flash-latest", api_key=google_api_key)
                 return OpenAIChat(id=model_id)
             else:
-                return Gemini(id=model_id, api_key=api_key)
+                return Gemini(id=model_id, api_key=google_api_key)
         
-        # Default models
-        if self.model_provider == "openai":
-            return OpenAIChat(id="gpt-4o")
+        # Default models with fallback chain
+        if self.model_provider == "openai" and openai_api_key:
+            return OpenAIChat(id="gpt-4o-mini")
+        elif google_api_key:
+            # Use stable gemini-flash-latest instead of experimental model
+            return Gemini(id="gemini-flash-latest", api_key=google_api_key)
         else:
-            return Gemini(id="gemini-2.0-flash-exp", api_key=api_key)
+            raise ValueError("No API keys configured. Please set GOOGLE_API_KEY or OPENAI_API_KEY")
     
     def get_agent(self, user_id: str) -> Optional[Agent]:
         """Get existing agent for a user"""

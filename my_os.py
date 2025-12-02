@@ -1,5 +1,5 @@
 """
-Fintech Agent Platform - ASGI entrypoint
+FinSIght Platform - ASGI entrypoint
 Run with: uvicorn my_os:app --host 0.0.0.0 --port 7777 --reload
 """
 import os

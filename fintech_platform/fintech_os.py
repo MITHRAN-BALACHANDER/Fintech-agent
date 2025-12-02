@@ -1,5 +1,5 @@
 """
-Fintech Agent Platform - Multi-tenant AgentOS
+FinSIght Platform - Multi-tenant AgentOS
 Main platform orchestrating personalized trading agents
 """
 from dotenv import load_dotenv
@@ -86,7 +86,7 @@ class FintechAgentPlatform:
         # Background monitoring
         self.monitoring_active = False
         
-        logger.info("Fintech Agent Platform initialized")
+        logger.info("FinSIght Platform initialized")
     
     def create_user(self, user_data: UserCreate) -> User:
         """Create a new user and their personal agent"""
@@ -230,8 +230,10 @@ class FintechAgentPlatform:
             logger.error(f"Error adding rule: {e}")
             raise
     
-    def query_agent(self, user_id: str, message: str, stream: bool = False) -> str:
-        """Query a user's personal agent"""
+    def query_agent(self, user_id: str, message: str, stream: bool = False, retry_count: int = 0) -> str:
+        """Query a user's personal agent with retry logic"""
+        max_retries = 2
+        
         try:
             agent = self.agents.get(user_id)
             if not agent:
@@ -245,8 +247,33 @@ class FintechAgentPlatform:
                 return response.content
         
         except Exception as e:
-            logger.error(f"Error querying agent: {e}")
-            raise
+            error_str = str(e)
+            logger.error(f"Error querying agent (attempt {retry_count + 1}/{max_retries + 1}): {error_str}")
+            
+            # Check for quota/rate limit errors
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
+                if retry_count < max_retries:
+                    logger.warning(f"API quota exceeded, attempting retry {retry_count + 1}")
+                    import time
+                    # Exponential backoff: 2, 4, 8 seconds
+                    wait_time = 2 ** (retry_count + 1)
+                    logger.info(f"Waiting {wait_time}s before retry...")
+                    time.sleep(wait_time)
+                    return self.query_agent(user_id, message, stream, retry_count + 1)
+                else:
+                    # All retries exhausted
+                    raise ValueError(
+                        "Our AI service is currently experiencing high demand. "
+                        "Please try again in a few moments. If the issue persists, "
+                        "contact support or check your API quota at https://aistudio.google.com/"
+                    )
+            
+            # For other errors, provide helpful message
+            if "API key" in error_str or "authentication" in error_str.lower():
+                raise ValueError("AI service authentication failed. Please contact support.")
+            
+            # Generic error
+            raise ValueError(f"Unable to process your request: {error_str}")
     
     def evaluate_rules(self, user_id: Optional[str] = None):
         """Evaluate trading rules for one or all users"""
@@ -338,14 +365,14 @@ from agno.models.google import Gemini
 
 placeholder_agent = Agent(
     name="Platform Admin Agent",
-    model=Gemini(id="gemini-2.0-flash-exp"),
+    model=Gemini(id="gemini-flash-latest", api_key=os.getenv("GOOGLE_API_KEY")),
     instructions="You are the platform administrator assistant.",
     description="Admin agent for platform management"
 )
 
 # Create AgentOS
 agnos = AgentOS(
-    name="Fintech Agent Platform",
+    name="FinSIght Platform",
     description="Multi-tenant AI trading assistant platform",
     agents=[placeholder_agent],  # Start with placeholder, add user agents dynamically
     version="1.0.0"
@@ -367,7 +394,10 @@ async def create_user_endpoint(user_data: UserCreate):
                 "id": user.id,
                 "email": user.email,
                 "name": user.name,
-                "agent_id": user.agent_id
+                "phone": user.phone,
+                "agent_id": user.agent_id,
+                "risk_profile": user.risk_profile,
+                "preferred_channels": [ch.value for ch in user.preferred_channels]
             }
         }
     except Exception as e:
@@ -415,10 +445,42 @@ async def login_endpoint(login_data: UserLogin):
                 "id": user_db.id,
                 "email": user_db.email,
                 "name": user_db.name,
+                "phone": user_db.phone,
                 "agent_id": user_db.agent_id,
-                "risk_profile": user_db.risk_profile
+                "risk_profile": user_db.risk_profile,
+                "preferred_channels": user_db.preferred_channels or []
             }
         }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/{user_id}")
+async def get_user_endpoint(user_id: str):
+    """Get user details by ID"""
+    try:
+        session = get_session(platform.engine)
+        
+        user_db = session.query(UserDB).filter_by(id=user_id).first()
+        
+        if not user_db:
+            session.close()
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = {
+            "id": user_db.id,
+            "email": user_db.email,
+            "name": user_db.name,
+            "phone": user_db.phone,
+            "agent_id": user_db.agent_id,
+            "risk_profile": user_db.risk_profile,
+            "preferred_channels": user_db.preferred_channels or []
+        }
+        
+        session.close()
+        return {"success": True, "user": user_data}
     except HTTPException:
         raise
     except Exception as e:

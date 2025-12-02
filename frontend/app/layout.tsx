@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/src/store/auth.context";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -10,7 +11,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fintech Agent Platform",
+  title: "FinSIght Platform",
   description: "AI-Powered Trading Assistant with Personalized Agents",
   viewport: "width=device-width, initial-scale=1",
 };
@@ -29,7 +30,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -50,7 +50,7 @@ export default function Dashboard() {
               <div className="w-9 h-9 rounded-lg elevation-2 bg-card flex items-center justify-center hover-lift">
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
-              <h1 className="text-lg font-semibold tracking-tight">Fintech Agent</h1>
+              <h1 className="text-lg font-semibold tracking-tight">FinSIght</h1>
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-3 px-3 py-2 rounded-lg elevation-1 bg-card border border-border">

@@ -1,5 +1,5 @@
 """
-Quick test script for the Fintech Agent Platform
+Quick test script for the FinSIght Platform
 """
 import requests
 import json
@@ -7,7 +7,7 @@ import json
 BASE_URL = "http://localhost:7777"
 
 print("=" * 70)
-print("FINTECH AGENT PLATFORM - QUICK TEST")
+print("FinSIght PLATFORM - QUICK TEST")
 print("=" * 70)
 print()
 

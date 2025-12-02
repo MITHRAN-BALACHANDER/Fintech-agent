@@ -1,5 +1,5 @@
 """
-Database configuration and schemas for the Fintech Agent Platform
+Database configuration and schemas for the FinSIght Platform
 """
 from sqlalchemy import create_engine, Column, String, Float, Integer, Boolean, DateTime, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base

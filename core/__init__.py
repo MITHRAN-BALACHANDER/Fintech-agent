@@ -1,5 +1,5 @@
 """
-Fintech Agent Platform - Core Package
+FinSIght Platform - Core Package
 Multi-tenant AI trading assistant platform powered by AGNO
 """
 

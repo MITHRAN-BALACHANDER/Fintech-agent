@@ -1,6 +1,6 @@
-# Fintech Agent Platform - Frontend
+# FinSIght Platform - Frontend
 
-Modern Next.js frontend for the Fintech Agent Platform with shadcn/ui components.
+Modern Next.js frontend for the FinSIght Platform with shadcn/ui components.
 
 ## Features
 
