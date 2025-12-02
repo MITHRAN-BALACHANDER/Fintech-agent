@@ -1,5 +1,5 @@
 /**
- * TypeScript types for the Fintech Agent Platform
+ * TypeScript types for the FinSIght Platform
  */
 
 export type RiskProfile = "conservative" | "moderate" | "aggressive";

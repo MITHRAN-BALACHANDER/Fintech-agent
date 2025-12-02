@@ -1,4 +1,4 @@
-# Fintech Agent Platform Requirements
+# FinSIght Platform Requirements
 
 # Core dependencies
 agno>=2.1.8

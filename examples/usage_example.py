@@ -1,5 +1,5 @@
 """
-Example usage of the Fintech Agent Platform
+Example usage of the FinSIght Platform
 Demonstrates creating users, adding rules, and querying agents
 """
 import requests
@@ -202,7 +202,7 @@ def example_us_stocks():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Fintech Agent Platform - Usage Examples")
+    print("FinSIght Platform - Usage Examples")
     print("=" * 60)
     print()
     

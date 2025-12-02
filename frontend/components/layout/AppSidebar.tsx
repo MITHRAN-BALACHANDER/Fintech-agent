@@ -4,13 +4,8 @@ import * as React from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
- 
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -25,7 +20,6 @@ import {
   Settings,
   Sun,
   Moon,
-  Laptop,
   LogOut,
   MoreHorizontal,
 } from "lucide-react"
@@ -46,21 +40,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 
 export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
   const router = useRouter()
   const pathname = usePathname()
-  const { setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const { user, logout } = useAuth()
 
   const handleLogout = () => {
     logout()
     router.push("/login")
+  }
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
   }
 
   return (
@@ -74,7 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Fintech Agent</span>
-                <span className="truncate text-xs">Pro Plan</span>
+                <span className="truncate text-xs"></span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -143,6 +138,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              onClick={toggleTheme}
+              tooltip="Toggle theme"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent">
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">Theme</span>
+              
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
@@ -150,14 +161,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="https://github.com/shadcn.png" alt={user?.name || "User"} />
+                    <AvatarImage 
+                      src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}`} 
+                      alt={user?.name || "User"} 
+                    />
                     <AvatarFallback className="rounded-lg">
                       {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{user?.name || "User"}</span>
-                    <span className="truncate text-xs">{user?.email || "m@example.com"}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.email || "user@example.com"}</span>
                   </div>
                   <MoreHorizontal className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -168,37 +182,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
                   <User className="mr-2 size-4" />
                   Account
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
                   <Settings className="mr-2 size-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span>Theme</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => setTheme("light")}>
-                        <Sun className="mr-2 h-4 w-4" />
-                        <span>Light</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme("dark")}>
-                        <Moon className="mr-2 h-4 w-4" />
-                        <span>Dark</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme("system")}>
-                        <Laptop className="mr-2 h-4 w-4" />
-                        <span>System</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 size-4" />
                   Log out

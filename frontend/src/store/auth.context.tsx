@@ -21,6 +21,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (user: User) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useLocalStorage<string | null>("userId", null);
   const [userName, setUserName] = useLocalStorage<string | null>("userName", null);
+  const [avatarUrl, setAvatarUrl] = useLocalStorage<string | null>("avatarUrl", null);
 
   // Initialize user state from localStorage values
   const [user, setUser] = useState<User | null>(() => {
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: userId,
         name: userName,
         email: "",
+        avatar_url: avatarUrl || undefined,
         risk_profile: "moderate" as const,
         preferred_channels: [],
         agent_id: userId,
@@ -52,15 +55,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData);
       setUserId(userData.id);
       setUserName(userData.name);
+      if (userData.avatar_url) {
+        setAvatarUrl(userData.avatar_url);
+      }
     },
-    [setUserId, setUserName]
+    [setUserId, setUserName, setAvatarUrl]
   );
 
   const logout = useCallback(() => {
     setUser(null);
     setUserId(null);
     setUserName(null);
-  }, [setUserId, setUserName]);
+    setAvatarUrl(null);
+  }, [setUserId, setUserName, setAvatarUrl]);
+
+  const updateUser = useCallback(
+    (userData: Partial<User>) => {
+      setUser((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, ...userData };
+        if (userData.avatar_url) {
+          setAvatarUrl(userData.avatar_url);
+        }
+        return updated;
+      });
+    },
+    [setAvatarUrl]
+  );
 
   const value: AuthContextType = {
     user,
@@ -69,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

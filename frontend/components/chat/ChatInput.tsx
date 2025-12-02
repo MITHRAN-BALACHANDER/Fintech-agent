@@ -50,7 +50,20 @@ export function ChatInput({ onMessageSent, onError, initialValue = "", onInputCh
             })
             onMessageSent(message, response.response)
         } catch (err: any) {
-            onError(err.message || "Failed to send message")
+            // Enhanced error handling for API quota issues
+            const errorMessage = err.message || "Failed to send message"
+            
+            if (errorMessage.includes("quota") || errorMessage.includes("high demand") || errorMessage.includes("429")) {
+                onError(
+                    "🔄 Our AI service is experiencing high demand right now. " +
+                    "Please wait a moment and try again. " +
+                    "Your message has not been lost."
+                )
+            } else if (errorMessage.includes("authentication") || errorMessage.includes("API key")) {
+                onError("⚠️ Service authentication error. Please contact support.")
+            } else {
+                onError(errorMessage)
+            }
         } finally {
             setIsLoading(false)
         }
@@ -78,7 +91,7 @@ export function ChatInput({ onMessageSent, onError, initialValue = "", onInputCh
             </TooltipProvider>
             <Textarea
                 placeholder="Ask anything about your finances..."
-                className="min-h-[20px] max-h-[200px] w-full resize-none border-0 bg-transparent px-0 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="min-h-5 max-h-[200px] w-full resize-none border-0 bg-transparent px-0 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                 rows={1}
                 value={input}
                 onChange={handleInputChange}

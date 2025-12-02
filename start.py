@@ -1,5 +1,5 @@
 """
-Fintech Agent Platform - Startup Script
+FinSIght Platform - Startup Script
 Initialize database and start the platform
 """
 import os
@@ -17,7 +17,7 @@ from agno.utils.log import logger
 def main():
     """Initialize and start the platform"""
     logger.info("=" * 60)
-    logger.info("Fintech Agent Platform - Starting Up")
+    logger.info("FinSIght Platform - Starting Up")
     logger.info("=" * 60)
     
     # Initialize database

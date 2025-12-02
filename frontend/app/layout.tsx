@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fintech Agent Platform",
+  title: "FinSIght Platform",
   description: "AI-Powered Trading Assistant with Personalized Agents",
   viewport: "width=device-width, initial-scale=1",
 };
