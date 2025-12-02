@@ -134,7 +134,7 @@ Full API docs: http://localhost:7777/docs
 Key environment variables in `.env`:
 - `GEMINI_API_KEY` or `OPENAI_API_KEY`
 - `DATABASE_URL` (SQLite default, PostgreSQL for production)
-- `SMTP_*` for email notifications
+- `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_FROM_EMAIL` for email notifications via Mailgun
 - `RULE_EVALUATION_INTERVAL` (monitoring frequency)
 
 ---

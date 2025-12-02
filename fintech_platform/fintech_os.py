@@ -120,7 +120,8 @@ class FintechAgentPlatform:
                 preferences={
                     "risk_profile": user.risk_profile,
                     "email": user.email,
-                    "phone": user.phone
+                    "phone": user.phone,
+                    "name": user.name
                 }
             )
             
@@ -431,7 +432,8 @@ async def login_endpoint(login_data: UserLogin):
                 preferences={
                     "risk_profile": user_db.risk_profile,
                     "email": user_db.email,
-                    "phone": user_db.phone
+                    "phone": user_db.phone,
+                    "name": user_db.name
                 }
             )
             agent = platform.agent_factory.create_agent(agent_config)
