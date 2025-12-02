@@ -17,69 +17,64 @@ import {
     Check
 } from "lucide-react"
 import { useAuth } from "@/src/store/auth.context"
+import apiService from "@/src/services/api.service"
 
-type NotificationType = "price_alert" | "trade" | "info" | "warning"
+type NotificationType = "price_alert" | "trade" | "info" | "warning" | "rule_trigger"
 
 interface Notification {
     id: string
+    user_id: string
     type: NotificationType
     title: string
     message: string
-    time: string
     read: boolean
+    created_at: string
 }
 
 export default function NotificationsPage() {
     const router = useRouter()
     const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-    const [notifications, setNotifications] = useState<Notification[]>([
-        {
-            id: "1",
-            type: "price_alert",
-            title: "Price Alert Triggered",
-            message: "AAPL has reached your target price of $150.00",
-            time: "5 minutes ago",
-            read: false
-        },
-        {
-            id: "2",
-            type: "trade",
-            title: "Trade Executed",
-            message: "Buy order for 10 shares of TSLA filled at $245.50",
-            time: "1 hour ago",
-            read: false
-        },
-        {
-            id: "3",
-            type: "info",
-            title: "Market Update",
-            message: "S&P 500 is up 2.5% today, reaching new highs",
-            time: "2 hours ago",
-            read: true
-        },
-        {
-            id: "4",
-            type: "warning",
-            title: "Risk Alert",
-            message: "Your portfolio volatility has increased by 15%",
-            time: "3 hours ago",
-            read: true
-        },
-        {
-            id: "5",
-            type: "trade",
-            title: "Watchlist Alert",
-            message: "NVDA added to your Tech Stocks watchlist",
-            time: "1 day ago",
-            read: true
-        }
-    ])
+    const [notifications, setNotifications] = useState<Notification[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
             router.push("/login")
         }
     }, [authLoading, isAuthenticated, router])
+
+    useEffect(() => {
+        const loadNotifications = async () => {
+            if (!user?.id) return
+            setIsLoading(true)
+            try {
+                const data = await apiService.getNotifications(user.id)
+                setNotifications(data)
+            } catch (err) {
+                console.error("Failed to load notifications:", err)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        if (user) {
+            loadNotifications()
+        }
+    }, [user])
+
+    const getTimeAgo = (dateString: string) => {
+        const now = new Date()
+        const date = new Date(dateString)
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+        if (seconds < 60) return `${seconds} seconds ago`
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+        const hours = Math.floor(minutes / 60)
+        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+        const days = Math.floor(hours / 24)
+        return `${days} day${days !== 1 ? 's' : ''} ago`
+    }
 
     const getIcon = (type: NotificationType) => {
         switch (type) {
@@ -94,27 +89,58 @@ export default function NotificationsPage() {
         }
     }
 
-    const markAsRead = (id: string) => {
-        setNotifications(notifications.map(n => 
-            n.id === id ? { ...n, read: true } : n
-        ))
+    const markAsRead = async (id: string) => {
+        if (!user?.id) return
+        try {
+            await apiService.markNotificationAsRead(user.id, id)
+            setNotifications(notifications.map(n => 
+                n.id === id ? { ...n, read: true } : n
+            ))
+        } catch (err) {
+            console.error("Failed to mark as read:", err)
+        }
     }
 
-    const markAllAsRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, read: true })))
+    const markAllAsRead = async () => {
+        if (!user?.id) return
+        try {
+            // In production, would call bulk update API
+            await Promise.all(
+                notifications.filter(n => !n.read).map(n => 
+                    apiService.markNotificationAsRead(user.id!, n.id)
+                )
+            )
+            setNotifications(notifications.map(n => ({ ...n, read: true })))
+        } catch (err) {
+            console.error("Failed to mark all as read:", err)
+        }
     }
 
-    const deleteNotification = (id: string) => {
-        setNotifications(notifications.filter(n => n.id !== id))
+    const deleteNotification = async (id: string) => {
+        if (!user?.id) return
+        try {
+            await apiService.deleteNotification(user.id, id)
+            setNotifications(notifications.filter(n => n.id !== id))
+        } catch (err) {
+            console.error("Failed to delete notification:", err)
+        }
     }
 
-    const clearAll = () => {
-        setNotifications([])
+    const clearAll = async () => {
+        if (!user?.id) return
+        try {
+            await Promise.all(
+                notifications.map(n => apiService.deleteNotification(user.id!, n.id))
+            )
+            setNotifications([])
+        } catch (err) {
+            console.error("Failed to clear all:", err)
+        }
     }
 
     const unreadCount = notifications.filter(n => !n.read).length
 
-    if (authLoading || !user) {
+    if (authLoading || !user || isLoading) {
         return (
             <ChatLayout>
                 <div className="flex items-center justify-center min-h-[400px]">
@@ -182,7 +208,7 @@ export default function NotificationsPage() {
                                                     )}
                                                 </div>
                                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                                    {notification.time}
+                                                    {getTimeAgo(notification.created_at)}
                                                 </span>
                                             </div>
                                             <p className="text-sm text-muted-foreground">

@@ -394,7 +394,10 @@ async def create_user_endpoint(user_data: UserCreate):
                 "id": user.id,
                 "email": user.email,
                 "name": user.name,
-                "agent_id": user.agent_id
+                "phone": user.phone,
+                "agent_id": user.agent_id,
+                "risk_profile": user.risk_profile,
+                "preferred_channels": [ch.value for ch in user.preferred_channels]
             }
         }
     except Exception as e:
@@ -442,10 +445,42 @@ async def login_endpoint(login_data: UserLogin):
                 "id": user_db.id,
                 "email": user_db.email,
                 "name": user_db.name,
+                "phone": user_db.phone,
                 "agent_id": user_db.agent_id,
-                "risk_profile": user_db.risk_profile
+                "risk_profile": user_db.risk_profile,
+                "preferred_channels": user_db.preferred_channels or []
             }
         }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/users/{user_id}")
+async def get_user_endpoint(user_id: str):
+    """Get user details by ID"""
+    try:
+        session = get_session(platform.engine)
+        
+        user_db = session.query(UserDB).filter_by(id=user_id).first()
+        
+        if not user_db:
+            session.close()
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = {
+            "id": user_db.id,
+            "email": user_db.email,
+            "name": user_db.name,
+            "phone": user_db.phone,
+            "agent_id": user_db.agent_id,
+            "risk_profile": user_db.risk_profile,
+            "preferred_channels": user_db.preferred_channels or []
+        }
+        
+        session.close()
+        return {"success": True, "user": user_data}
     except HTTPException:
         raise
     except Exception as e:

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Bell, Lock, Search, Settings, X } from "lucide-react"
 
@@ -18,12 +18,53 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/src/store/auth.context"
+import apiService from "@/src/services/api.service"
+
+interface Notification {
+    id: string
+    title: string
+    message: string
+    created_at: string
+    read: boolean
+}
 
 export function TopNavigation() {
     const router = useRouter()
     const { user } = useAuth()
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
+    const [notifications, setNotifications] = useState<Notification[]>([])
+
+    useEffect(() => {
+        const loadNotifications = async () => {
+            if (!user?.id) return
+            try {
+                const data = await apiService.getNotifications(user.id)
+                // Show only the 3 most recent
+                setNotifications(data.slice(0, 3))
+            } catch (err) {
+                console.error("Failed to load notifications:", err)
+            }
+        }
+
+        if (user) {
+            loadNotifications()
+        }
+    }, [user])
+
+    const getTimeAgo = (dateString: string) => {
+        const now = new Date()
+        const date = new Date(dateString)
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+        if (seconds < 60) return `${seconds}s ago`
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return `${minutes}m ago`
+        const hours = Math.floor(minutes / 60)
+        if (hours < 24) return `${hours}h ago`
+        const days = Math.floor(hours / 24)
+        return `${days}d ago`
+    }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -35,14 +76,7 @@ export function TopNavigation() {
         }
     }
 
-    // Mock notifications - in real app, fetch from API
-    const notifications = [
-        { id: 1, title: "Price Alert", message: "AAPL reached $150", time: "5m ago", unread: true },
-        { id: 2, title: "Trade Executed", message: "Buy order filled for TSLA", time: "1h ago", unread: true },
-        { id: 3, title: "Market Update", message: "S&P 500 up 2.5%", time: "2h ago", unread: false },
-    ]
-
-    const unreadCount = notifications.filter(n => n.unread).length
+    const unreadCount = notifications.filter(n => !n.read).length
 
     return (
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -119,12 +153,12 @@ export function TopNavigation() {
                                         >
                                             <div className="flex items-center justify-between w-full">
                                                 <span className="font-medium text-sm">{notification.title}</span>
-                                                {notification.unread && (
+                                                {!notification.read && (
                                                     <Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />
                                                 )}
                                             </div>
                                             <span className="text-xs text-muted-foreground">{notification.message}</span>
-                                            <span className="text-xs text-muted-foreground">{notification.time}</span>
+                                            <span className="text-xs text-muted-foreground">{getTimeAgo(notification.created_at)}</span>
                                         </DropdownMenuItem>
                                     ))
                                 ) : (

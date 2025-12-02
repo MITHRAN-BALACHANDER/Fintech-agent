@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Shield, Loader2, Check, Camera, Upload } from "lucide-react"
+import { User, Mail, Phone, Shield, Loader2, Check, Camera } from "lucide-react"
 import { useAuth } from "@/src/store/auth.context"
 import apiService from "@/src/services/api.service"
 
@@ -126,15 +126,42 @@ export default function ProfilePage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} />
-                                <AvatarFallback className="text-2xl">
-                                    {user.name?.charAt(0).toUpperCase() || "U"}
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="relative group">
+                                <Avatar className="h-24 w-24">
+                                    <AvatarImage 
+                                        src={avatarUrl || user.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} 
+                                    />
+                                    <AvatarFallback className="text-2xl">
+                                        {user.name?.charAt(0).toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <Camera className="h-6 w-6 text-white" />
+                                </button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
+                            </div>
                             <div className="flex-1 space-y-2 text-center md:text-left">
                                 <h2 className="text-2xl font-bold">{user.name}</h2>
-                                <p className="text-muted-foreground">{user.email}</p>
+                                <div className="flex items-center gap-2 text-muted-foreground justify-center md:justify-start">
+                                    <Mail className="h-4 w-4" />
+                                    <p>{user.email}</p>
+                                </div>
+                                {user.phone && (
+                                    <div className="flex items-center gap-2 text-muted-foreground justify-center md:justify-start">
+                                        <Phone className="h-4 w-4" />
+                                        <p>{user.phone}</p>
+                                    </div>
+                                )}
                                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                                     <Badge variant="secondary">
                                         <Shield className="h-3 w-3 mr-1" />

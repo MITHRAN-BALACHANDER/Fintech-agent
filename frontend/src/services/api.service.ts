@@ -214,6 +214,61 @@ class ApiService {
   async getMonitoringStatus(): Promise<{ active: boolean }> {
     return this.fetch("/api/monitoring/status", {}, "monitoring-status");
   }
+
+  // Notifications (Mock for now - replace with real API)
+  async getNotifications(userId: string): Promise<any[]> {
+    // In production, this would be: return this.fetch(`/api/users/${userId}/notifications`)
+    // For now, return mock data that simulates real notifications
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: `notif_${Date.now()}_1`,
+            user_id: userId,
+            type: "price_alert",
+            title: "Price Alert Triggered",
+            message: "AAPL has reached your target price of $150.00",
+            read: false,
+            created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          },
+          {
+            id: `notif_${Date.now()}_2`,
+            user_id: userId,
+            type: "trade",
+            title: "Trade Executed",
+            message: "Buy order for 10 shares of TSLA filled at $245.50",
+            read: false,
+            created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: `notif_${Date.now()}_3`,
+            user_id: userId,
+            type: "info",
+            title: "Market Update",
+            message: "S&P 500 is up 2.5% today, reaching new highs",
+            read: true,
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          },
+        ]);
+      }, 500);
+    });
+  }
+
+  async markNotificationAsRead(
+    userId: string,
+    notificationId: string
+  ): Promise<{ success: boolean }> {
+    // Mock implementation
+    return Promise.resolve({ success: true });
+  }
+
+  async deleteNotification(
+    userId: string,
+    notificationId: string
+  ): Promise<{ success: boolean }> {
+    // Mock implementation
+    return Promise.resolve({ success: true });
+  }
 }
 
 export const apiService = new ApiService();

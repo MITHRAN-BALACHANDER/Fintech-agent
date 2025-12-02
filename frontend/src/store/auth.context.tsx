@@ -29,6 +29,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useLocalStorage<string | null>("userId", null);
   const [userName, setUserName] = useLocalStorage<string | null>("userName", null);
+  const [userEmail, setUserEmail] = useLocalStorage<string | null>("userEmail", null);
+  const [userPhone, setUserPhone] = useLocalStorage<string | null>("userPhone", null);
   const [avatarUrl, setAvatarUrl] = useLocalStorage<string | null>("avatarUrl", null);
 
   // Initialize user state from localStorage values
@@ -37,7 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         id: userId,
         name: userName,
-        email: "",
+        email: userEmail || "",
+        phone: userPhone || undefined,
         avatar_url: avatarUrl || undefined,
         risk_profile: "moderate" as const,
         preferred_channels: [],
@@ -55,19 +58,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData);
       setUserId(userData.id);
       setUserName(userData.name);
+      setUserEmail(userData.email);
+      if (userData.phone) {
+        setUserPhone(userData.phone);
+      }
       if (userData.avatar_url) {
         setAvatarUrl(userData.avatar_url);
       }
     },
-    [setUserId, setUserName, setAvatarUrl]
+    [setUserId, setUserName, setUserEmail, setUserPhone, setAvatarUrl]
   );
 
   const logout = useCallback(() => {
     setUser(null);
     setUserId(null);
     setUserName(null);
+    setUserEmail(null);
+    setUserPhone(null);
     setAvatarUrl(null);
-  }, [setUserId, setUserName, setAvatarUrl]);
+  }, [setUserId, setUserName, setUserEmail, setUserPhone, setAvatarUrl]);
 
   const updateUser = useCallback(
     (userData: Partial<User>) => {
@@ -77,10 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (userData.avatar_url) {
           setAvatarUrl(userData.avatar_url);
         }
+        if (userData.email) {
+          setUserEmail(userData.email);
+        }
+        if (userData.phone) {
+          setUserPhone(userData.phone);
+        }
         return updated;
       });
     },
-    [setAvatarUrl]
+    [setAvatarUrl, setUserEmail, setUserPhone]
   );
 
   const value: AuthContextType = {
