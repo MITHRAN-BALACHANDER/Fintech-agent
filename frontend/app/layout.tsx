@@ -13,8 +13,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FinSIght Platform",
   description: "AI-Powered Trading Assistant with Personalized Agents",
-  viewport: "width=device-width, initial-scale=1",
 };
+
+// Move viewport to the dedicated export as recommended by Next.js
+export const viewport = "width=device-width, initial-scale=1";
 
 export default function RootLayout({
   children,
