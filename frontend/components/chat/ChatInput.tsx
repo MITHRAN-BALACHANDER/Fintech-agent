@@ -16,12 +16,13 @@ import apiService from "@/src/services/api.service"
 
 interface ChatInputProps {
     onMessageSent: (message: string, response: string) => void
+    onMessageSending?: (message: string) => void
     onError: (error: string) => void
     initialValue?: string
     onInputChange?: (value: string) => void
 }
 
-export function ChatInput({ onMessageSent, onError, initialValue = "", onInputChange }: ChatInputProps) {
+export function ChatInput({ onMessageSent, onMessageSending, onError, initialValue = "", onInputChange }: ChatInputProps) {
     const { userId } = useAuth()
     const [input, setInput] = useState(initialValue)
     const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +42,10 @@ export function ChatInput({ onMessageSent, onError, initialValue = "", onInputCh
 
         const message = input
         setInput("")
+        
+        // Immediately notify that message is being sent
+        onMessageSending?.(message)
+        
         setIsLoading(true)
 
         try {
@@ -49,9 +54,9 @@ export function ChatInput({ onMessageSent, onError, initialValue = "", onInputCh
                 stream: false,
             })
             onMessageSent(message, response.response)
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Enhanced error handling for API quota issues
-            const errorMessage = err.message || "Failed to send message"
+            const errorMessage = (err instanceof Error ? err.message : String(err)) || "Failed to send message"
             
             if (errorMessage.includes("quota") || errorMessage.includes("high demand") || errorMessage.includes("429")) {
                 onError(

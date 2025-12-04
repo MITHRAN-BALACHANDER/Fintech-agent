@@ -27,6 +27,7 @@ from core.database import (
 )
 from core.agent_factory import AgentFactory
 from core.rule_engine import RuleEngine
+from core.scheduler import TaskScheduler
 from core.auth import hash_password, verify_password
 from agno.utils.log import logger
 
@@ -76,8 +77,12 @@ class FintechAgentPlatform:
         # Initialize database
         self.engine = init_database(db_url)
         
-        # Initialize agent factory and rule engine with database engine
-        self.agent_factory = AgentFactory(db_engine=self.engine)
+        # Initialize task scheduler
+        self.scheduler = TaskScheduler(db_engine=self.engine)
+        self.scheduler.start()
+        
+        # Initialize agent factory and rule engine with database engine and scheduler
+        self.agent_factory = AgentFactory(db_engine=self.engine, scheduler=self.scheduler)
         self.rule_engine = RuleEngine()
         
         # Agent registry
@@ -86,7 +91,7 @@ class FintechAgentPlatform:
         # Background monitoring
         self.monitoring_active = False
         
-        logger.info("FinSIght Platform initialized")
+        logger.info("FinSIght Platform initialized with background scheduler")
     
     def create_user(self, user_data: UserCreate) -> User:
         """Create a new user and their personal agent"""
@@ -751,5 +756,142 @@ async def get_user_stats(user_id: str):
             "recent_rule_triggers": triggered_rules,
             "agent_active": user_id in platform.agents
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Scheduler Management Endpoints
+class ScheduleAnalysisRequest(BaseModel):
+    scheduled_time: str  # ISO format datetime
+    watchlist_names: Optional[List[str]] = None
+    compare_from: Optional[str] = None
+
+
+class ScheduleRecurringRequest(BaseModel):
+    interval_minutes: int
+    watchlist_names: Optional[List[str]] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+
+
+class ScheduleMonitoringRequest(BaseModel):
+    assets: List[str]
+    duration_minutes: int
+    report_at_end: bool = True
+
+
+@app.post("/api/scheduler/analysis/{user_id}")
+async def schedule_portfolio_analysis(user_id: str, request: ScheduleAnalysisRequest):
+    """Schedule a one-time portfolio analysis"""
+    try:
+        scheduled_time = datetime.fromisoformat(request.scheduled_time.replace('Z', '+00:00'))
+        compare_from = datetime.fromisoformat(request.compare_from.replace('Z', '+00:00')) if request.compare_from else None
+        
+        task_id = platform.scheduler.schedule_portfolio_analysis(
+            user_id=user_id,
+            scheduled_time=scheduled_time,
+            watchlist_names=request.watchlist_names,
+            compare_from=compare_from
+        )
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "scheduled_time": scheduled_time.isoformat(),
+            "message": f"Portfolio analysis scheduled for {scheduled_time.strftime('%I:%M %p')}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scheduler/recurring/{user_id}")
+async def schedule_recurring_analysis(user_id: str, request: ScheduleRecurringRequest):
+    """Schedule recurring portfolio analysis"""
+    try:
+        start_time = datetime.fromisoformat(request.start_time.replace('Z', '+00:00')) if request.start_time else None
+        end_time = datetime.fromisoformat(request.end_time.replace('Z', '+00:00')) if request.end_time else None
+        
+        task_id = platform.scheduler.schedule_recurring_analysis(
+            user_id=user_id,
+            interval_minutes=request.interval_minutes,
+            watchlist_names=request.watchlist_names,
+            start_time=start_time,
+            end_time=end_time
+        )
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "interval_minutes": request.interval_minutes,
+            "message": f"Recurring analysis scheduled every {request.interval_minutes} minutes"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scheduler/monitoring/{user_id}")
+async def schedule_price_monitoring(user_id: str, request: ScheduleMonitoringRequest):
+    """Schedule price monitoring for assets"""
+    try:
+        task_id = platform.scheduler.schedule_price_monitoring(
+            user_id=user_id,
+            assets=request.assets,
+            duration_minutes=request.duration_minutes,
+            report_at_end=request.report_at_end
+        )
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "duration_minutes": request.duration_minutes,
+            "assets": request.assets,
+            "message": f"Monitoring {len(request.assets)} assets for {request.duration_minutes} minutes"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/scheduler/tasks/{user_id}")
+async def get_user_tasks(user_id: str):
+    """Get all scheduled tasks for a user"""
+    try:
+        tasks = platform.scheduler.list_user_tasks(user_id)
+        return {
+            "success": True,
+            "tasks": tasks,
+            "count": len(tasks)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/scheduler/tasks/{task_id}")
+async def cancel_task(task_id: str):
+    """Cancel a scheduled task"""
+    try:
+        success = platform.scheduler.cancel_task(task_id)
+        if success:
+            return {
+                "success": True,
+                "message": f"Task {task_id} cancelled"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Task not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/scheduler/tasks/{task_id}/status")
+async def get_task_status(task_id: str):
+    """Get status of a specific task"""
+    try:
+        status = platform.scheduler.get_task_status(task_id)
+        if status:
+            return {
+                "success": True,
+                "task": status
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Task not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

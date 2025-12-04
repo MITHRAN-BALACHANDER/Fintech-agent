@@ -76,7 +76,7 @@ export default function LoginPage() {
                         {/* Feature List */}
                         <div className="space-y-4">
                             {[
-                                { icon: Shield, text: "Bank-grade security" },
+                                { icon: Shield, text: "Privacy-focused" },
                                 { icon: Zap, text: "Real-time market insights" },
                                 { icon: TrendingUp, text: "AI-powered analytics" },
                             ].map((feature, i) => (

@@ -14,6 +14,7 @@ from tools.market_tools import MarketDataTools
 from tools.notification_tools import NotificationTools
 from tools.watchlist_tools import WatchlistTools
 from tools.rules_tools import RulesTools
+from tools.scheduler_tools import SchedulerTools
 from agno.utils.log import logger
 import os
 
@@ -21,7 +22,8 @@ import os
 class AgentFactory:
     """Factory for creating and managing personalized trading agents"""
     
-    def __init__(self, db_engine: Optional[Engine] = None, model_provider: str = "gemini", db_path: str = "./agents.db"):
+    def __init__(self, db_engine: Optional[Engine] = None, model_provider: str = "gemini", 
+                 db_path: str = "./agents.db", scheduler = None):
         """
         Initialize agent factory.
         
@@ -29,10 +31,12 @@ class AgentFactory:
             db_engine: SQLAlchemy database engine for watchlist/rules access
             model_provider: AI model provider (gemini, openai)
             db_path: Path to SQLite database for agent storage
+            scheduler: TaskScheduler instance for scheduling background tasks
         """
         self.db_engine = db_engine
         self.model_provider = model_provider
         self.db_path = db_path
+        self.scheduler = scheduler
         self.agents: Dict[str, Agent] = {}
     
     def create_agent(self, config: AgentConfig) -> Agent:
@@ -62,7 +66,8 @@ class AgentFactory:
                 MarketDataTools(),
                 NotificationTools(user_email=user_email, user_phone=user_phone, user_name=user_name),
                 WatchlistTools(user_id=config.user_id, db_engine=self.db_engine),
-                RulesTools(user_id=config.user_id, db_engine=self.db_engine)
+                RulesTools(user_id=config.user_id, db_engine=self.db_engine),
+                SchedulerTools(user_id=config.user_id, scheduler=self.scheduler)
             ]
             
             # Create database for agent memory
@@ -166,6 +171,45 @@ class AgentFactory:
             **Email/SMS Notifications:**
             - The user's email and phone are already configured in your notification tools
             - DO NOT ask the user for their email or phone number - they are already set up
+            
+            **Scheduling Future Tasks (NEW - PRODUCTION FEATURE!):**
+            You NOW have the ability to schedule tasks for the future and maintain memory!
+            
+            Available scheduling tools:
+            1. **schedule_analysis_at_time(time_str, watchlist_names=None)**
+               - Schedule one-time portfolio analysis at specific time
+               - Example: schedule_analysis_at_time("3:30 PM")
+               - Use when: "analyze my portfolio at 3:30 PM"
+            
+            2. **schedule_monitoring_until(end_time_str, assets)**
+               - Monitor asset prices continuously until specified time
+               - Automatically sends detailed report at end time
+               - Example: schedule_monitoring_until("3:30 PM", ["TCS.NS", "AAPL"])
+               - Use when: "monitor TCS and AAPL until 3:30 PM"
+            
+            3. **schedule_recurring_analysis(interval_minutes, until_time_str, watchlist_names=None)**
+               - Repeated analysis at regular intervals
+               - Example: schedule_recurring_analysis(30, "5:00 PM")
+               - Use when: "analyze my portfolio every 30 minutes until 5 PM"
+            
+            4. **list_scheduled_tasks()** - View all active scheduled tasks
+            5. **cancel_task(task_id)** - Cancel a scheduled task
+            
+            **Important Usage Guidelines:**
+            - When user requests future analysis, ALWAYS use scheduler tools
+            - **For "analyze/monitor from now to [time]"**: Use schedule_monitoring_until()
+            - **For "analyze at [specific time]"**: Use schedule_analysis_at_time()
+            - If user says "my watchlist" or "my portfolio", first get their watchlist assets using get_watchlists()
+            - Then extract the asset symbols from the watchlist to pass to scheduler
+            - Confirm task scheduling: "✅ Monitoring started. You'll receive an email automatically at [time]."
+            - Tasks run independently - you don't need to stay active
+            - Reports are sent via email when tasks complete
+            
+            **Example Workflow for "mail me my watchlist analysis from now to 4 PM":**
+            1. Call get_watchlists() to see user's watchlists
+            2. Extract all asset symbols from their watchlists
+            3. Call schedule_monitoring_until("4:00 PM", asset_list)
+            4. Confirm: "✅ Monitoring your watchlist until 4 PM. Report will be emailed automatically."
             
             **Sending Formatted Emails (RECOMMENDED):**
             Use send_formatted_email() for professional, beautifully designed emails matching the app UI:

@@ -23,7 +23,7 @@ export default function Dashboard() {
     const storedUserName = localStorage.getItem("userName");
     
     if (!storedUserId) {
-      router.push("/");
+      router.push("/login");
     } else {
       setUserId(storedUserId);
       setUserName(storedUserName);
@@ -33,7 +33,7 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
-    router.push("/");
+    router.push("/login");
   };
 
   if (!userId) {

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ChatLayout } from "@/components/layout/ChatLayout"
 import { ChatMessage } from "@/components/chat/ChatMessage"
 import { ChatInput } from "@/components/chat/ChatInput"
-import { PortfolioChart } from "@/components/chat/RichContent"
 import { useAuth } from "@/src/store/auth.context"
 
 interface Message {
@@ -26,7 +25,15 @@ function ChatPage() {
     }
   ])
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [initialInput, setInitialInput] = useState("")
+  
+  // Get initial input based on action parameter
+  const action = searchParams.get("action")
+  const getInitialInput = () => {
+    if (action === "trade") return "I want to buy "
+    if (action === "analyse") return "Analyse my portfolio"
+    return ""
+  }
+  const [initialInput, setInitialInput] = useState(getInitialInput())
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -35,38 +42,49 @@ function ChatPage() {
   }, [isLoading, isAuthenticated, router])
 
   useEffect(() => {
-    const action = searchParams.get("action")
-    if (action === "trade") {
-      setInitialInput("I want to buy ")
-    } else if (action === "analyse") {
-      setInitialInput("Analyse my portfolio")
-    }
-  }, [searchParams])
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const handleMessageSent = (userMessage: string, response: string) => {
+  const handleMessageSending = (userMessage: string) => {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
     setMessages(prev => [
       ...prev,
       { role: "user", content: userMessage, timestamp },
-      { role: "assistant", content: response, timestamp }
+      { role: "assistant", content: "Thinking...", timestamp }
     ])
+  }
+
+  const handleMessageSent = (userMessage: string, response: string) => {
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    // Replace the "Thinking..." message with actual response
+    setMessages(prev => {
+      const newMessages = [...prev]
+      // Remove the loading message
+      newMessages.pop()
+      // Add the actual response
+      newMessages.push({ role: "assistant", content: response, timestamp })
+      return newMessages
+    })
   }
 
   const handleError = (error: string) => {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    setMessages(prev => [
-      ...prev,
-      {
+    
+    // Replace the "Thinking..." message with error
+    setMessages(prev => {
+      const newMessages = [...prev]
+      // Remove the loading message
+      newMessages.pop()
+      // Add the error message
+      newMessages.push({
         role: "assistant",
         content: <span className="text-destructive">Error: {error}</span>,
         timestamp
-      }
-    ])
+      })
+      return newMessages
+    })
   }
 
   if (isLoading || !isAuthenticated) {
@@ -89,6 +107,7 @@ function ChatPage() {
         </div>
         <div className="p-4 pt-0">
           <ChatInput
+            onMessageSending={handleMessageSending}
             onMessageSent={handleMessageSent}
             onError={handleError}
             initialValue={initialInput}

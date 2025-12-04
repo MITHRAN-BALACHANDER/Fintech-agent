@@ -139,7 +139,7 @@ export default function SignupPage() {
                         {/* Benefits Grid */}
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { icon: Shield, text: "Bank-grade security", desc: "Enterprise encryption" },
+                                { icon: Shield, text: "Privacy-focused", desc: "Enterprise encryption" },
                                 { icon: Zap, text: "Real-time insights", desc: "Live market data" },
                                 { icon: BarChart3, text: "AI analytics", desc: "Smart predictions" },
                                 { icon: Users, text: "Expert support", desc: "24/7 assistance" },
@@ -157,22 +157,22 @@ export default function SignupPage() {
                         </div>
 
                         {/* Social Proof */}
-                        <div className="flex items-center gap-6 pt-4 border-t border-primary-foreground/10">
-                            <div>
-                                <p className="text-2xl font-bold">10K+</p>
-                                <p className="text-xs text-primary-foreground/60">Active traders</p>
-                            </div>
-                            <div className="h-8 w-px bg-primary-foreground/20" />
-                            <div>
-                                <p className="text-2xl font-bold">$2.5M+</p>
-                                <p className="text-xs text-primary-foreground/60">Daily volume</p>
-                            </div>
-                            <div className="h-8 w-px bg-primary-foreground/20" />
-                            <div>
-                                <p className="text-2xl font-bold">4.9★</p>
-                                <p className="text-xs text-primary-foreground/60">User rating</p>
-                            </div>
-                        </div>
+                  {/* <div className="flex items-center gap-6 pt-4 border-t border-primary-foreground/10"> */}
+                            {/* <div> */}
+                                {/* <p className="text-2xl font-bold">10K+</p> */}
+                                {/* {/* <p className="text-xs text-primary-foreground/60">Active traders</p> */} 
+                            {/* </div> */}
+                            {/* <div className="h-8 w-px bg-primary-foreground/20" /> */}
+                            {/* <div> */}
+                                {/* <p className="text-2xl font-bold">$2.5M+</p> */}
+                                {/* {/* <p className="text-xs text-primary-foreground/60">Daily volume</p> */} 
+                            {/* </div> */}
+                            {/* <div className="h-8 w-px bg-primary-foreground/20" /> */}
+                            {/* <div> */}
+                                {/* <p className="text-2xl font-bold">4.9★</p> */}
+                                {/* {/* <p className="text-xs text-primary-foreground/60">User rating</p> */} 
+                            {/* </div> */}
+                        {/* </div> */}
                     </div>
 
                     {/* Footer */}

@@ -20,7 +20,9 @@ gunicorn>=21.2.0
 redis>=5.0.0
 
 # Optional: Advanced features
-celery>=5.3.0  # For background tasks
+apscheduler>=3.10.4  # Background task scheduler (production-grade)
+pytz>=2024.1  # Timezone support for scheduler
+celery>=5.3.0  # Alternative: For background tasks
 twilio>=8.0.0  # For SMS notifications
 sendgrid>=6.11.0  # For email
 pandas>=2.2.0  # For data analysis

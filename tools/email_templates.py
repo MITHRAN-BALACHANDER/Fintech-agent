@@ -22,6 +22,37 @@ class EmailTemplates:
     DANGER_COLOR = "#ef4444"
     
     @staticmethod
+    def get_currency_symbol(symbol: str) -> str:
+        """
+        Get the appropriate currency symbol based on stock symbol.
+        Indian stocks (NSE/BSE) use ₹, US stocks use $
+        
+        Args:
+            symbol: Stock symbol (e.g., 'AAPL', 'TCS.NS', 'RELIANCE.BO')
+        
+        Returns:
+            Currency symbol (₹ or $)
+        """
+        if symbol and (symbol.endswith('.NS') or symbol.endswith('.BO')):
+            return '₹'
+        return '$'
+    
+    @staticmethod
+    def format_price(price: float, symbol: str) -> str:
+        """
+        Format price with appropriate currency symbol.
+        
+        Args:
+            price: The price value
+            symbol: Stock symbol to determine currency
+        
+        Returns:
+            Formatted price string with currency symbol
+        """
+        currency = EmailTemplates.get_currency_symbol(symbol)
+        return f"{currency}{price:,.2f}"
+    
+    @staticmethod
     def _base_template(title: str, content: str, preheader: str = "") -> str:
         """Base email template with responsive design"""
         return f"""
@@ -452,10 +483,10 @@ class EmailTemplates:
         <div class="section">
             <div class="stat-card">
                 <div class="stat-label">Current Price</div>
-                <p class="stat-value">${price:,.2f}</p>
+                <p class="stat-value">{cls.format_price(price, symbol)}</p>
             </div>
             <p style="margin-top: 16px;">
-                <strong>{symbol}</strong> has {alert_text} your threshold of <strong>${threshold:,.2f}</strong>
+                <strong>{symbol}</strong> has {alert_text} your threshold of <strong>{cls.format_price(threshold, symbol)}</strong>
             </p>
         </div>
         
@@ -470,7 +501,7 @@ class EmailTemplates:
         return cls._base_template(
             title=f"Price Alert: {symbol}",
             content=content,
-            preheader=f"{symbol} has {alert_text} ${threshold:,.2f}"
+            preheader=f"{symbol} has {alert_text} {cls.format_price(threshold, symbol)}"
         )
     
     @classmethod
