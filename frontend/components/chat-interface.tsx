@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import apiClient from "@/lib/api-client";
 import { Send, Bot, User } from "lucide-react";
 import { ChatMessage } from "@/lib/types";
+import { FormattedMessage } from "@/components/chat/FormattedMessage";
 
 interface ChatInterfaceProps {
   userId: string;
@@ -107,7 +108,11 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
                   }`}
                 >
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="whitespace-pre-wrap m-0 text-sm leading-relaxed">{message.content}</p>
+                    {message.role === "assistant" ? (
+                      <FormattedMessage content={message.content} />
+                    ) : (
+                      <p className="whitespace-pre-wrap m-0 text-sm leading-relaxed">{message.content}</p>
+                    )}
                   </div>
                 </Card>
                 {message.role === "user" && (

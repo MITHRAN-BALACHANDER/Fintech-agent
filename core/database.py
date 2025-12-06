@@ -14,6 +14,7 @@ class UserDB(Base):
     __tablename__ = "users"
     
     id = Column(String, primary_key=True)
+    tenant_id = Column(String, nullable=False, default="default", index=True)  # Multi-tenant support
     email = Column(String, unique=True, nullable=False, index=True)
     name = Column(String, nullable=False)
     password_hash = Column(String)  # Store hashed password
@@ -29,6 +30,7 @@ class UserDB(Base):
     watchlists = relationship("WatchlistDB", back_populates="user", cascade="all, delete-orphan")
     rules = relationship("TradingRuleDB", back_populates="user", cascade="all, delete-orphan")
     trades = relationship("TradeExecutionDB", back_populates="user", cascade="all, delete-orphan")
+    wallet_connections = relationship("WalletConnectionDB", back_populates="user", cascade="all, delete-orphan")
 
 
 class WatchlistDB(Base):
@@ -81,6 +83,36 @@ class TradeExecutionDB(Base):
     trade_metadata = Column(JSON, default=dict)
     
     user = relationship("UserDB", back_populates="trades")
+
+
+class WalletConnectionDB(Base):
+    __tablename__ = "wallet_connections"
+    
+    id = Column(String, primary_key=True)
+    tenant_id = Column(String, nullable=False, index=True)  # Multi-tenant support
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    wallet_address = Column(String, nullable=False, index=True)  # Checksummed EVM address
+    chain_id = Column(Integer, nullable=False, default=1)  # 1=Ethereum, 137=Polygon, etc.
+    wallet_type = Column(String, nullable=False)  # metamask, coinbase, walletconnect
+    label = Column(String)  # User-defined label
+    is_primary = Column(Boolean, default=False)  # Primary wallet for this user
+    verified_at = Column(DateTime)  # When signature was verified
+    last_used_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.now)
+    wallet_metadata = Column(JSON, default=dict)  # ENS, balance cache, etc.
+    
+    user = relationship("UserDB", back_populates="wallet_connections")
+
+
+class WalletNonceDB(Base):
+    __tablename__ = "wallet_nonces"
+    
+    wallet_address = Column(String, primary_key=True)  # Checksummed address
+    nonce = Column(String, nullable=False)  # Random nonce for SIWE
+    message = Column(String, nullable=False)  # Full SIWE message that was signed
+    created_at = Column(DateTime, default=datetime.now)
+    expires_at = Column(DateTime, nullable=False)  # Nonce expiry (5 min)
+    used = Column(Boolean, default=False)  # Prevent nonce reuse
 
 
 class MarketDataCache(Base):

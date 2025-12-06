@@ -29,6 +29,7 @@ from core.agent_factory import AgentFactory
 from core.rule_engine import RuleEngine
 from core.scheduler import TaskScheduler
 from core.auth import hash_password, verify_password
+from core.wallet_api import router as wallet_router
 from agno.utils.log import logger
 
 
@@ -386,6 +387,9 @@ agnos = AgentOS(
 
 # Get FastAPI app
 app = agnos.get_app()
+
+# Include wallet router
+app.include_router(wallet_router)
 
 
 # Custom API Endpoints

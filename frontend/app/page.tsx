@@ -6,10 +6,11 @@ import { ChatLayout } from "@/components/layout/ChatLayout"
 import { ChatMessage } from "@/components/chat/ChatMessage"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { useAuth } from "@/src/store/auth.context"
+import { FormattedMessage } from "@/components/chat/FormattedMessage"
 
 interface Message {
   role: "user" | "assistant"
-  content: React.ReactNode
+  content: string | React.ReactNode
   timestamp: string
 }
 
@@ -99,7 +100,11 @@ function ChatPage() {
             <ChatMessage
               key={index}
               role={msg.role}
-              content={msg.content}
+              content={
+                msg.role === "assistant" && typeof msg.content === "string" 
+                  ? <FormattedMessage content={msg.content} />
+                  : msg.content
+              }
               timestamp={msg.timestamp}
             />
           ))}

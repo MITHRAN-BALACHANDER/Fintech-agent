@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Shield, Loader2, Check, Camera } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { User, Mail, Phone, Shield, Loader2, Check, Camera, Wallet } from "lucide-react"
 import { useAuth } from "@/src/store/auth.context"
 import apiService from "@/src/services/api.service"
+import { WalletManager } from "@/components/wallet/WalletManager"
 
 export default function ProfilePage() {
     const router = useRouter()
@@ -208,14 +210,27 @@ export default function ProfilePage() {
                     </div>
                 )}
 
-                {/* Profile Form */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>Update your personal details</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Tabbed Content */}
+                <Tabs defaultValue="personal" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="personal">
+                            <User className="h-4 w-4 mr-2" />
+                            Personal Info
+                        </TabsTrigger>
+                        <TabsTrigger value="wallet">
+                            <Wallet className="h-4 w-4 mr-2" />
+                            Crypto Wallets
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="personal">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Personal Information</CardTitle>
+                                <CardDescription>Update your personal details</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleSubmit} className="space-y-4">
                             {message && (
                                 <div
                                     className={`rounded-lg p-4 text-sm ${
@@ -312,9 +327,25 @@ export default function ProfilePage() {
                                     )}
                                 </Button>
                             </div>
-                        </form>
-                    </CardContent>
-                </Card>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="wallet">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Crypto Wallets</CardTitle>
+                                <CardDescription>
+                                    Connect and manage your cryptocurrency wallets securely with self-custody
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <WalletManager />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
                 </div>
             </div>
         </ChatLayout>

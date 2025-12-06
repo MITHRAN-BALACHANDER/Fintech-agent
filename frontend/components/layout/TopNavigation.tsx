@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/src/store/auth.context"
 import apiService from "@/src/services/api.service"
+import { WalletButton } from "@/components/wallet/WalletButton"
 
 interface Notification {
     id: string
@@ -85,7 +86,8 @@ export function TopNavigation() {
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
                     <Lock className="h-3 w-3" />
-                    <span>Secure • 256-bit encrypted</span>
+                    <span>Secure </span>
+                    {/* <span>Secure • 256-bit encrypted</span> */}
                 </div>
             </div>
             
@@ -126,6 +128,9 @@ export function TopNavigation() {
                             <span className="sr-only">Search</span>
                         </Button>
                         
+                        {/* Wallet Button */}
+                        <WalletButton />
+
                         {/* Notifications Dropdown */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

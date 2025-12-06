@@ -28,6 +28,11 @@ sendgrid>=6.11.0  # For email
 pandas>=2.2.0  # For data analysis
 numpy>=1.26.0  # For calculations
 
+# Crypto wallet integration
+web3>=7.0.0  # Web3 Python library for EVM interactions
+eth-account>=0.13.0  # Ethereum account management and SIWE
+PyJWT>=2.8.0  # JWT token generation and verification
+
 # Development
 pytest>=8.0.0
 black>=24.0.0

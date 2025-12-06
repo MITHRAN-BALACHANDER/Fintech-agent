@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
+import { useAuth } from "@/src/store/auth.context"
 
 interface ChatMessageProps {
     role: "user" | "assistant"
@@ -11,6 +12,12 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
+    const { user } = useAuth()
+
+    // Get user avatar URL - fallback to Dicebear initials or default
+    const userAvatarUrl = user?.avatar_url || 
+        (user?.name ? `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}` : "https://github.com/shadcn.png")
+
     return (
         <div
             className={cn(
@@ -20,10 +27,10 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
         >
             <Avatar className="h-8 w-8 shrink-0">
                 <AvatarImage
-                    src={role === "user" ? "https://github.com/shadcn.png" : "/bot-avatar.png"}
+                    src={role === "user" ? userAvatarUrl : "/bot-avatar.png"}
                     alt={role}
                 />
-                <AvatarFallback>{role === "user" ? "U" : "AI"}</AvatarFallback>
+                <AvatarFallback>{role === "user" ? (user?.name?.charAt(0).toUpperCase() || "U") : "AI"}</AvatarFallback>
             </Avatar>
             <div
                 className={cn(
